@@ -161,18 +161,14 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 
 func (a *agent) SendData(data EdgeData) bool {
 	result, payloads := convertTagValue(data)
-	/* topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
-	for _, payload := range payloads{
-	if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
-		helper := newSQLiteHelper(dataRecoverFilePath)
-		helper.write(payload)
-		result = false
-	}
-	} */
+	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
 	for _, payload := range payloads {
-		helper := newSQLiteHelper(dataRecoverFilePath)
-		helper.write(payload)
+		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
+			fmt.Println(token.Error())
+			helper := newSQLiteHelper(dataRecoverFilePath)
+			helper.write(payload)
+			result = false
+		}
 	}
 	return result
 }
