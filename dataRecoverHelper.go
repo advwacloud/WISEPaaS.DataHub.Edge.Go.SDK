@@ -44,10 +44,15 @@ func (helper *sqliteHelper) isDataExist() bool {
 		return false
 	}
 	rows, err := db.Query("SELECT * FROM Data LIMIT 1")
-
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
 	result := false
-	for rows.Next() {
-		result = true
+	if rows != nil {
+		for rows.Next() {
+			result = true
+		}
 	}
 	return result
 }
@@ -57,7 +62,7 @@ func (helper *sqliteHelper) read(count int) []string {
 	var emptyMessages []string
 	var ids []int
 	if _, err := os.Stat(helper.filePath); os.IsNotExist(err) {
-		return messages
+		return emptyMessages
 	}
 
 	helper.lock.Lock()
@@ -69,12 +74,16 @@ func (helper *sqliteHelper) read(count int) []string {
 
 	if err != nil {
 		fmt.Println(err)
-		return messages
+		return emptyMessages
 	}
 	rows, err := db.Query(fmt.Sprintf("SELECT * FROM Data LIMIT %d", count))
 	if err != nil {
 		fmt.Println(err)
-		return messages
+		return emptyMessages
+	}
+
+	if rows == nil {
+		return emptyMessages
 	}
 
 	for rows.Next() {

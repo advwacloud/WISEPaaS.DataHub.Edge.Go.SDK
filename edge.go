@@ -262,7 +262,7 @@ func getTimeSyncMessageFromCmdMessage(utc int) TimeSyncMessage {
 }
 
 func (o *MQTTOptions) isValid() bool {
-	return !(o.HostName == "" || o.Port == 0 || o.UserName == "" || o.Password == "" || o.ProtocalType == "")
+	return !(o.HostName == "" || o.Port == 0 || o.ProtocalType == "")
 }
 
 func (o *DCCSOptions) isValid() bool {
