@@ -18,6 +18,7 @@ var Action = map[string]byte{
 	"Create": 1,
 	"Update": 2,
 	"Delete": 3,
+	"Delsert": 4,
 }
 
 // ConnectType ...

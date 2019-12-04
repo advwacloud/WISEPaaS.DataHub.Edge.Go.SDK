@@ -79,6 +79,7 @@ func (a *agent) Connect() error {
 		}
 		error := a.getCredentailFromDCCS()
 		if error != nil {
+			fmt.Println(error)
 			return error
 		}
 	}
@@ -128,6 +129,8 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
 	case Action["Delete"]:
 		result, payload = convertDeleteConfig(action, scadaID, config)
+	case Action["Delsert"]:
+		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)	
 	default:
 		result = false
 	}
@@ -233,6 +236,8 @@ func (a *agent) newClientOptions() (*MQTT.ClientOptions, error) {
 	uuid := UUID.New()
 	clientOptions.SetClientID(fmt.Sprintf("EdgeAgent_%s", uuid))
 	clientOptions.SetAutoReconnect(true)
+	clientOptions.SetConnectRetry(true)
+	clientOptions.SetConnectRetryInterval(time.Duration(a.options.ReconnectInterval) * time.Second)
 	clientOptions.SetCleanSession(true)
 	clientOptions.SetPassword(a.options.MQTT.Password)
 	clientOptions.SetUsername(a.options.MQTT.UserName)
