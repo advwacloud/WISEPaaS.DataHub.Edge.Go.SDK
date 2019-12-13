@@ -75,16 +75,17 @@ type ScadaConfig struct {
 
 // DeviceConfig ...
 type DeviceConfig struct {
-	id              interface{}
-	name            interface{}
-	comPortNumber   interface{}
-	deviceType      interface{}
-	description     interface{}
-	ip              interface{}
-	port            interface{}
-	AnalogTagList   []AnalogTagConfig
-	DiscreteTagList []DiscreteTagConfig
-	TextTagList     []TextTagConfig
+	id              		interface{}
+	name            		interface{}
+	comPortNumber   		interface{}
+	deviceType      		interface{}
+	description     		interface{}
+	ip              		interface{}
+	port            		interface{}
+	retentionPolicyName interface{}
+	AnalogTagList   		[]AnalogTagConfig
+	DiscreteTagList 		[]DiscreteTagConfig
+	TextTagList     		[]TextTagConfig
 }
 
 // AnalogTagConfig ...
@@ -318,6 +319,11 @@ func (config *DeviceConfig) SetIP(ip string) {
 // SetPort ...
 func (config *DeviceConfig) SetPort(port int) {
 	config.port = port
+}
+
+// SetRetentionPolicyName ...
+func (config *DeviceConfig) SetRetentionPolicyName(name string) {
+	config.retentionPolicyName = name
 }
 
 // SetDescription ...

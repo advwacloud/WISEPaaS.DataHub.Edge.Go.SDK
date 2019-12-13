@@ -275,8 +275,6 @@ func (a *agent) SetOnMessageReceiveHandler(onMessageReceive OnMessageReceiveHand
 }
 
 func (a *agent) handleOnConnect(c MQTT.Client) {
-	fmt.Println("Connected....")
-
 	/* subscribe */
 	cmdTopic := fmt.Sprintf(mqttTopic["DeviceCmdTopic"], a.options.ScadaID, a.options.DeviceID)
 	if a.options.Type == EdgeType["Gateway"] {

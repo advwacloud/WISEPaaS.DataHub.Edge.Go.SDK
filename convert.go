@@ -75,6 +75,9 @@ func convertDeviceConfig(device DeviceConfig) (string, map[string]interface{}) {
 	if device.port != nil {
 		d["Port"] = device.port
 	}
+	if device.retentionPolicyName != nil {
+		d["RP"] = device.retentionPolicyName
+	}
 
 	for _, tag := range device.AnalogTagList {
 		if d["Tag"] == nil {
