@@ -28,12 +28,6 @@ func convertDeleteConfig(action byte, scadaID string, config EdgeConfig) (bool, 
 func convertScadaConfig(config ScadaConfig, heartbeat int) map[string]interface{} {
 	s := make(map[string]interface{})
 	s["Hbt"] = heartbeat
-	if config.name != nil {
-		s["Name"] = config.name.(string)
-	}
-	if config.description != nil {
-		s["Desc"] = config.description
-	}
 	if config.primaryIP != nil {
 		s["PIP"] = config.primaryIP
 	}

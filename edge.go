@@ -65,8 +65,6 @@ type EdgeDeviceStatus struct {
 
 // ScadaConfig ...
 type ScadaConfig struct {
-	name        interface{}
-	description interface{}
 	primaryIP   interface{}
 	backupIP    interface{}
 	primaryPort interface{}
@@ -195,10 +193,8 @@ func NewEdgeAgentOptions() *EdgeAgentOptions {
 }
 
 // NewScadaConfig ...
-func NewScadaConfig(name string) ScadaConfig {
-	return ScadaConfig{
-		name: name,
-	}
+func NewScadaConfig() ScadaConfig {
+	return ScadaConfig{}
 }
 
 // NewDeviceConfig ...
@@ -267,11 +263,6 @@ func (o *MQTTOptions) isValid() bool {
 
 func (o *DCCSOptions) isValid() bool {
 	return !(o.URL == "" || o.Key == "")
-}
-
-// SetDescription ...
-func (config *ScadaConfig) SetDescription(desc string) {
-	config.description = desc
 }
 
 // SetPrimaryIP ...
