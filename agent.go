@@ -27,13 +27,14 @@ type Agent interface {
 
 // Agent ...
 type agent struct {
-	options          EdgeAgentOptions
-	client           MQTT.Client // interface
-	heartbeatTimer   chan bool
-	dataRecoverTimer chan bool
-	OnConnect        OnConnectHandler
-	OnDisconnect     OnDisconnectHandler
-	OnMessageReceive OnMessageReceiveHandler
+	options                  EdgeAgentOptions
+	client                   MQTT.Client // interface
+	heartbeatTimer           chan bool
+	dataRecoverTimer         chan bool
+	fractionDisplayFormatMap map[string]uint
+	OnConnect                OnConnectHandler
+	OnDisconnect             OnDisconnectHandler
+	OnMessageReceive         OnMessageReceiveHandler
 }
 
 // OnConnectHandler ...
@@ -48,13 +49,14 @@ type OnMessageReceiveHandler func(MessageReceivedEventArgs)
 // NewAgent ...
 func NewAgent(options *EdgeAgentOptions) Agent {
 	a := &agent{
-		options:          *options,
-		client:           nil,
-		heartbeatTimer:   nil,
-		dataRecoverTimer: nil,
-		OnConnect:        func(a Agent) {},
-		OnDisconnect:     func(a Agent) {},
-		OnMessageReceive: func(res MessageReceivedEventArgs) {},
+		options:                  *options,
+		client:                   nil,
+		heartbeatTimer:           nil,
+		dataRecoverTimer:         nil,
+		fractionDisplayFormatMap: make(map[string]uint),
+		OnConnect:                func(a Agent) {},
+		OnDisconnect:             func(a Agent) {},
+		OnMessageReceive:         func(res MessageReceivedEventArgs) {},
 	}
 	return a
 }
@@ -119,6 +121,27 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	if !a.IsConnected() {
 		return false
 	}
+
+	// create tag-fraFormat map for better performance
+	if action != Action["Delete"] {
+		// reset the map when upload cfg each time
+		a.fractionDisplayFormatMap = make(map[string]uint)
+
+		for _, device := range config.Scada.DeviceList {
+			for _, tag := range device.AnalogTagList {
+				tagKey := fmt.Sprintf("%v", device.id) + conjChar + fmt.Sprintf("%v", tag.name)
+
+				fractionDisplayFormat := DefaultFractionDisplayFormat
+
+				if convertResult, ok := tag.fractionDisplayFormat.(uint); ok {
+					fractionDisplayFormat = convertResult
+				}
+
+				a.fractionDisplayFormatMap[tagKey] = fractionDisplayFormat
+			}
+		}
+	}
+
 	scadaID := a.options.ScadaID
 	var payload string
 	var result = false
@@ -128,9 +151,11 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	case Action["Update"]:
 		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
 	case Action["Delete"]:
+		// clean format map when cfg is deleted
+		a.fractionDisplayFormatMap = make(map[string]uint)
 		result, payload = convertDeleteConfig(action, scadaID, config)
 	case Action["Delsert"]:
-		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)	
+		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
 	default:
 		result = false
 	}
@@ -163,7 +188,7 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 }
 
 func (a *agent) SendData(data EdgeData) bool {
-	result, payloads := convertTagValue(data)
+	result, payloads := convertTagValue(data, a.fractionDisplayFormatMap)
 	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
 	for _, payload := range payloads {
 		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {

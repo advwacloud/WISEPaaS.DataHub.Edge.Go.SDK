@@ -1,6 +1,7 @@
 package agent
 
 const (
+	conjChar string = "|"
 	// HeartBeatInterval ...
 	HeartBeatInterval int = 60 // second
 	// defaultReadRecordCount ...
@@ -11,13 +12,15 @@ const (
 	dataRecoverFilePath string = "recover.sqlite"
 	// limit data size
 	dataMaxTagCount int = 100
+	// default fractionDisplayFormat
+	DefaultFractionDisplayFormat uint = 2
 )
 
 // Action ...
 var Action = map[string]byte{
-	"Create": 1,
-	"Update": 2,
-	"Delete": 3,
+	"Create":  1,
+	"Update":  2,
+	"Delete":  3,
 	"Delsert": 4,
 }
 

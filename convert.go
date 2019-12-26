@@ -1,6 +1,10 @@
 package agent
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+	"strconv"
+)
 
 func convertCreateorUpdateConfig(action byte, scadaID string, config EdgeConfig, heartbeat int) (bool, string) {
 	message := newConfigData(action)
@@ -196,7 +200,7 @@ func convertTextTagConfig(tag TextTagConfig) (string, map[string]interface{}) {
 	return tag.name.(string), t
 }
 
-func convertTagValue(data EdgeData) (bool, []string) {
+func convertTagValue(data EdgeData, fractionDisplayFormatMap map[string]uint) (bool, []string) {
 	count := 0
 	list := data.TagList
 	var messages []string
@@ -211,7 +215,20 @@ func convertTagValue(data EdgeData) (bool, []string) {
 		if msg.D[tag.DeviceID] == nil {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
-		msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
+
+		fractionDisplayFormat, ok := fractionDisplayFormatMap[tag.DeviceID+conjChar+tag.TagName]
+		if ok == true { // analog data
+
+			// Round down tag value to the specified digit
+			valFormat := "%." + fmt.Sprint(fractionDisplayFormat) + "f"
+			valStr := fmt.Sprintf(valFormat, tag.Value)
+			finalVal, _ := strconv.ParseFloat(valStr, 64)
+
+			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = finalVal
+
+		} else {
+			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
+		}
 		count++
 		if count == dataMaxTagCount {
 			messages = append(messages, msg.getPayload())
