@@ -15,9 +15,7 @@ type tagsCfgHelper interface {
 	writeCfgToFile(a *agent, filePath string) bool
 }
 
-type tagsCfgStruct struct {
-	filePath string
-}
+type tagsCfgStruct struct{}
 
 func newTagsCfgHelper() tagsCfgHelper {
 	return &tagsCfgStruct{}
@@ -48,7 +46,7 @@ func (helper *tagsCfgStruct) addCfgByUploadConfig(a *agent, config *EdgeConfig) 
 }
 
 func (helper *tagsCfgStruct) addCfgFromFile(a *agent, filePath string) bool {
-	if _, err := os.Stat(helper.filePath); os.IsNotExist(err) {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return false
 	}
 
