@@ -31,6 +31,7 @@ type agent struct {
 	client           MQTT.Client // interface
 	heartbeatTimer   chan bool
 	dataRecoverTimer chan bool
+	tagsCfgMap       map[string]map[string]interface{}
 	OnConnect        OnConnectHandler
 	OnDisconnect     OnDisconnectHandler
 	OnMessageReceive OnMessageReceiveHandler
@@ -52,10 +53,16 @@ func NewAgent(options *EdgeAgentOptions) Agent {
 		client:           nil,
 		heartbeatTimer:   nil,
 		dataRecoverTimer: nil,
+		tagsCfgMap:       make(map[string]map[string]interface{}),
 		OnConnect:        func(a Agent) {},
 		OnDisconnect:     func(a Agent) {},
 		OnMessageReceive: func(res MessageReceivedEventArgs) {},
 	}
+
+	// add cfg to memory from disk
+	helper := newTagsCfgHelper()
+	helper.addCfgFromFile(a, tagsCfgFilePath)
+
 	return a
 }
 
@@ -120,6 +127,17 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 		return false
 	}
 	scadaID := a.options.ScadaID
+
+	if action != Action["Delete"] {
+		helper := newTagsCfgHelper()
+
+		// add config to memory
+		helper.addCfgByUploadConfig(a, &config)
+
+		// write config to disk
+		helper.writeCfgToFile(a, tagsCfgFilePath)
+	}
+
 	var payload string
 	var result = false
 	switch action {
@@ -130,7 +148,7 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	case Action["Delete"]:
 		result, payload = convertDeleteConfig(action, scadaID, config)
 	case Action["Delsert"]:
-		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)	
+		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
 	default:
 		result = false
 	}
@@ -163,7 +181,7 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 }
 
 func (a *agent) SendData(data EdgeData) bool {
-	result, payloads := convertTagValue(data)
+	result, payloads := convertTagValue(data, a)
 	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
 	for _, payload := range payloads {
 		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {

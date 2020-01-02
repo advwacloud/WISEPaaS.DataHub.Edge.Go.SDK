@@ -1,6 +1,10 @@
 package agent
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+	"strconv"
+)
 
 func convertCreateorUpdateConfig(action byte, scadaID string, config EdgeConfig, heartbeat int) (bool, string) {
 	message := newConfigData(action)
@@ -196,7 +200,7 @@ func convertTextTagConfig(tag TextTagConfig) (string, map[string]interface{}) {
 	return tag.name.(string), t
 }
 
-func convertTagValue(data EdgeData) (bool, []string) {
+func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 	count := 0
 	list := data.TagList
 	var messages []string
@@ -211,7 +215,18 @@ func convertTagValue(data EdgeData) (bool, []string) {
 		if msg.D[tag.DeviceID] == nil {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
-		msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
+
+		tagKey := fmt.Sprintf(tagKeyFormat, a.options.ScadaID, tag.DeviceID, tag.TagName)
+		fractionDisplayFormat, ok := a.tagsCfgMap[tagKey]["fractionDisplayFormat"]
+
+		if ok == true {
+			// Round down tag value to the specified digit
+			convertVal := roundDownByFDF(tag.Value, fractionDisplayFormat)
+			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = convertVal
+		} else {
+			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
+		}
+
 		count++
 		if count == dataMaxTagCount {
 			messages = append(messages, msg.getPayload())
@@ -220,4 +235,17 @@ func convertTagValue(data EdgeData) (bool, []string) {
 	}
 	messages = append(messages, msg.getPayload())
 	return true, messages
+}
+
+func roundDownByFDF(originVal interface{}, fractionDisplayFormat interface{}) float64 {
+	valFormat := "%." + fmt.Sprint(fractionDisplayFormat) + "f"
+	valStr := fmt.Sprintf(valFormat, originVal)
+
+	finalVal, err := strconv.ParseFloat(valStr, 64)
+
+	if err != nil {
+		return originVal.(float64)
+	}
+
+	return finalVal
 }

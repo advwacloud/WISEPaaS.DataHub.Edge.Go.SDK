@@ -1,6 +1,8 @@
 package agent
 
 const (
+	// tag key for map
+	tagKeyFormat string = "%s|%s|%s"
 	// HeartBeatInterval ...
 	HeartBeatInterval int = 60 // second
 	// defaultReadRecordCount ...
@@ -9,15 +11,17 @@ const (
 	dataRecoverInterval int = 3 //second
 	// dataRecoverFilePath ...
 	dataRecoverFilePath string = "recover.sqlite"
+	// tags conifg file path
+	tagsCfgFilePath string = "tagsCfgMap.json"
 	// limit data size
 	dataMaxTagCount int = 100
 )
 
 // Action ...
 var Action = map[string]byte{
-	"Create": 1,
-	"Update": 2,
-	"Delete": 3,
+	"Create":  1,
+	"Update":  2,
+	"Delete":  3,
 	"Delsert": 4,
 }
 
