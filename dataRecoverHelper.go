@@ -10,24 +10,26 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type dataRecoverHelper interface {
-	isDataExist() bool
-	read(count int) []string
-	write(message string) bool
+// DataRecoverHelper ...
+type DataRecoverHelper interface {
+	IsDataExist() bool
+	Read(count int) []string
+	Write(message string) bool
 }
 
-type sqliteHelper struct {
+type dataRecoverHelper struct {
 	lock     sync.Mutex
 	filePath string
 }
 
-func newSQLiteHelper(path string) dataRecoverHelper {
-	return &sqliteHelper{
+// NewDataRecoverHelper ...
+func NewDataRecoverHelper(path string) DataRecoverHelper {
+	return &dataRecoverHelper{
 		filePath: path,
 	}
 }
 
-func (helper *sqliteHelper) isDataExist() bool {
+func (helper *dataRecoverHelper) IsDataExist() bool {
 	if _, err := os.Stat(helper.filePath); os.IsNotExist(err) {
 		return false
 	}
@@ -57,7 +59,7 @@ func (helper *sqliteHelper) isDataExist() bool {
 	return result
 }
 
-func (helper *sqliteHelper) read(count int) []string {
+func (helper *dataRecoverHelper) Read(count int) []string {
 	var messages []string
 	var emptyMessages []string
 	var ids []int
@@ -116,7 +118,7 @@ func (helper *sqliteHelper) read(count int) []string {
 	return messages
 }
 
-func (helper *sqliteHelper) write(message string) bool {
+func (helper *dataRecoverHelper) Write(message string) bool {
 	helper.lock.Lock()
 	db, err := sql.Open("sqlite3", helper.filePath)
 

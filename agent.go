@@ -186,8 +186,8 @@ func (a *agent) SendData(data EdgeData) bool {
 	for _, payload := range payloads {
 		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
-			helper := newSQLiteHelper(dataRecoverFilePath)
-			helper.write(payload)
+			helper := NewDataRecoverHelper(dataRecoverFilePath)
+			helper.Write(payload)
 			result = false
 		}
 	}
@@ -420,15 +420,15 @@ func (a *agent) sendRecover() {
 	if !a.IsConnected() {
 		return
 	}
-	helper := newSQLiteHelper(dataRecoverFilePath)
-	if !helper.isDataExist() {
+	helper := NewDataRecoverHelper(dataRecoverFilePath)
+	if !helper.IsDataExist() {
 		return
 	}
-	messages := helper.read(defaultReadRecordCount)
+	messages := helper.Read(defaultReadRecordCount)
 	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
 	for _, message := range messages {
 		if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], false, message); token.Wait() && token.Error() != nil {
-			helper.write(message)
+			helper.Write(message)
 		}
 	}
 }
