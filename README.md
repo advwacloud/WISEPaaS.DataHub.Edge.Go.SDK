@@ -1,8 +1,8 @@
-# WISEPaaS.SCADA.Go.SDK 
+# WISEPaaS.DataHub.Edge.Go.SDK 
 
-The WISEPaaS.SCADA.Go.SDK package allows developers to write Golang applications which access the WISE-PaaS Platform via MQTT or MQTT over the Secure WebSocket Protocol.
+The WISEPaaS.DataHub.Edge.Go.SDK package allows developers to write Golang applications which access the WISE-PaaS/DataHub Platform via MQTT or MQTT over the secure webSocket protocol.
 
-* [SDK Manual](https://advwacloud.gitbooks.io/wise-paas-scada-edge-sdk-manual "SDK Manual")
+* [Edge SDK Manual](https://docs.wise-paas.advantech.com/en/Guides_and_API_References/Data_Acquisition/1579073100328245315 "Edge SDK Manual")
 
 * [WISE-PaaS Technical portal](https://portal-technical.wise-paas.com/)
 

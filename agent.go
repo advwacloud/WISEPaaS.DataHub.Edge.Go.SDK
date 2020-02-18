@@ -109,9 +109,9 @@ func (a *agent) Disconnect() {
 	}
 
 	/* Send Disconnect message */
-	topic := fmt.Sprintf(mqttTopic["DeviceConnTopic"], a.options.ScadaID, a.options.DeviceID)
+	topic := fmt.Sprintf(mqttTopic["DeviceConnTopic"], a.options.NodeID, a.options.DeviceID)
 	if a.options.Type == EdgeType["GateWay"] {
-		topic = fmt.Sprintf(mqttTopic["ScadaConnTopic"], a.options.ScadaID)
+		topic = fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	}
 	payload := newDisconnectMessage().getPayload()
 	if token := a.client.Publish(topic, mqttQoS["AtleaseOnce"], true, payload); token.Wait() && token.Error() != nil {
@@ -126,7 +126,7 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	if !a.IsConnected() {
 		return false
 	}
-	scadaID := a.options.ScadaID
+	nodeID := a.options.NodeID
 
 	if action != Action["Delete"] {
 		helper := newTagsCfgHelper()
@@ -142,18 +142,18 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	var result = false
 	switch action {
 	case Action["Create"]:
-		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
+		result, payload = convertCreateorUpdateConfig(action, nodeID, config, a.options.HeartBeatInterval)
 	case Action["Update"]:
-		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
+		result, payload = convertCreateorUpdateConfig(action, nodeID, config, a.options.HeartBeatInterval)
 	case Action["Delete"]:
-		result, payload = convertDeleteConfig(action, scadaID, config)
+		result, payload = convertDeleteConfig(action, nodeID, config)
 	case Action["Delsert"]:
-		result, payload = convertCreateorUpdateConfig(action, scadaID, config, a.options.HeartBeatInterval)
+		result, payload = convertCreateorUpdateConfig(action, nodeID, config, a.options.HeartBeatInterval)
 	default:
 		result = false
 	}
 	if result {
-		topic := fmt.Sprintf(mqttTopic["ConfigTopic"], a.options.ScadaID)
+		topic := fmt.Sprintf(mqttTopic["ConfigTopic"], a.options.NodeID)
 		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
 			result = false
@@ -172,7 +172,7 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 		msg.D.Dev[status.ID] = status.Status
 	}
 	payload := msg.getPayload()
-	topic := fmt.Sprintf(mqttTopic["ScadaConnTopic"], a.options.ScadaID)
+	topic := fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 		return false
@@ -182,7 +182,7 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 
 func (a *agent) SendData(data EdgeData) bool {
 	result, payloads := convertTagValue(data, a)
-	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
+	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.NodeID)
 	for _, payload := range payloads {
 		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
@@ -260,7 +260,7 @@ func (a *agent) newClientOptions() (*MQTT.ClientOptions, error) {
 	clientOptions.SetPassword(a.options.MQTT.Password)
 	clientOptions.SetUsername(a.options.MQTT.UserName)
 	clientOptions.SetMaxReconnectInterval(time.Duration(a.options.ReconnectInterval) * time.Second)
-	topic := fmt.Sprintf(mqttTopic["ScadaConnTopic"], a.options.ScadaID)
+	topic := fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	payload := newWillMessage().getPayload()
 	clientOptions.SetWill(topic, payload, mqttQoS["AtLeastOnce"], true)
 
@@ -294,22 +294,22 @@ func (a *agent) SetOnMessageReceiveHandler(onMessageReceive OnMessageReceiveHand
 
 func (a *agent) handleOnConnect(c MQTT.Client) {
 	/* subscribe */
-	cmdTopic := fmt.Sprintf(mqttTopic["DeviceCmdTopic"], a.options.ScadaID, a.options.DeviceID)
+	cmdTopic := fmt.Sprintf(mqttTopic["DeviceCmdTopic"], a.options.NodeID, a.options.DeviceID)
 	if a.options.Type == EdgeType["Gateway"] {
-		cmdTopic = fmt.Sprintf(mqttTopic["ScadaCmdTopic"], a.options.ScadaID)
+		cmdTopic = fmt.Sprintf(mqttTopic["NodeCmdTopic"], a.options.NodeID)
 	}
 	if token := a.client.Subscribe(cmdTopic, mqttQoS["AtLeastOnce"], a.handleCmdReceive); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 	}
-	ackTopic := fmt.Sprintf(mqttTopic["AckTopic"], a.options.ScadaID)
+	ackTopic := fmt.Sprintf(mqttTopic["AckTopic"], a.options.NodeID)
 	if token := a.client.Subscribe(ackTopic, mqttQoS["AtLeastOnce"], a.handleAckReceive); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 	}
 
 	/* Send connect Message */
-	topic := fmt.Sprintf(mqttTopic["DeviceConnTopic"], a.options.ScadaID, a.options.DeviceID)
+	topic := fmt.Sprintf(mqttTopic["DeviceConnTopic"], a.options.NodeID, a.options.DeviceID)
 	if a.options.Type == EdgeType["GateWay"] {
-		topic = fmt.Sprintf(mqttTopic["ScadaConnTopic"], a.options.ScadaID)
+		topic = fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	}
 	payload := newConnMessage().getPayload()
 	if token := a.client.Publish(topic, mqttQoS["AtleaseOnce"], true, payload); token.Wait() && token.Error() != nil {
@@ -406,9 +406,9 @@ func (a *agent) sendHeartBeat() {
 	if !a.IsConnected() {
 		return
 	}
-	topic := fmt.Sprintf(mqttTopic["DeviceConnTopic"], a.options.ScadaID, a.options.DeviceID)
+	topic := fmt.Sprintf(mqttTopic["DeviceConnTopic"], a.options.NodeID, a.options.DeviceID)
 	if a.options.Type == EdgeType["GateWay"] {
-		topic = fmt.Sprintf(mqttTopic["ScadaConnTopic"], a.options.ScadaID)
+		topic = fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	}
 	payload := newHeartBeatMessage().getPayload()
 	if token := a.client.Publish(topic, mqttQoS["AtleaseOnce"], true, payload); token.Wait() && token.Error() != nil {
@@ -425,7 +425,7 @@ func (a *agent) sendRecover() {
 		return
 	}
 	messages := helper.Read(defaultReadRecordCount)
-	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.ScadaID)
+	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.NodeID)
 	for _, message := range messages {
 		if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], false, message); token.Wait() && token.Error() != nil {
 			helper.Write(message)

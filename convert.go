@@ -6,30 +6,30 @@ import (
 	"strconv"
 )
 
-func convertCreateorUpdateConfig(action byte, scadaID string, config EdgeConfig, heartbeat int) (bool, string) {
+func convertCreateorUpdateConfig(action byte, nodeID string, config EdgeConfig, heartbeat int) (bool, string) {
 	message := newConfigData(action)
-	message.D.Scada[scadaID] = make(map[string]interface{})
-	message.D.Scada[scadaID] = convertScadaConfig(config.Scada, heartbeat)
+	message.D.Scada[nodeID] = make(map[string]interface{})
+	message.D.Scada[nodeID] = convertNodeConfig(config.Node, heartbeat)
 	return true, message.getPayload()
 }
 
-func convertDeleteConfig(action byte, scadaID string, config EdgeConfig) (bool, string) {
+func convertDeleteConfig(action byte, nodeID string, config EdgeConfig) (bool, string) {
 	message := newConfigData(action)
-	scada := config.Scada
+	node := config.Node
 	s := make(map[string]interface{})
-	for _, device := range scada.DeviceList {
+	for _, device := range node.DeviceList {
 		if s["Device"] == nil {
 			s["Device"] = make(map[string]interface{})
 		}
 		id, d := convertDeviceConfig(device)
 		s["Device"].(map[string]interface{})[id] = d
 	}
-	message.D.Scada[scadaID] = make(map[string]interface{})
-	message.D.Scada[scadaID] = s
+	message.D.Scada[nodeID] = make(map[string]interface{})
+	message.D.Scada[nodeID] = s
 	return true, message.getPayload()
 }
 
-func convertScadaConfig(config ScadaConfig, heartbeat int) map[string]interface{} {
+func convertNodeConfig(config NodeConfig, heartbeat int) map[string]interface{} {
 	s := make(map[string]interface{})
 	s["Hbt"] = heartbeat
 	if config.primaryIP != nil {
@@ -44,8 +44,8 @@ func convertScadaConfig(config ScadaConfig, heartbeat int) map[string]interface{
 	if config.backupPort != nil {
 		s["BPort"] = config.backupPort
 	}
-	if config.scadaType != nil {
-		s["Type"] = config.scadaType
+	if config.nodeType != nil {
+		s["Type"] = config.nodeType
 	}
 
 	for _, device := range config.DeviceList {
@@ -216,7 +216,7 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
 
-		tagKey := fmt.Sprintf(tagKeyFormat, a.options.ScadaID, tag.DeviceID, tag.TagName)
+		tagKey := fmt.Sprintf(tagKeyFormat, a.options.NodeID, tag.DeviceID, tag.TagName)
 		fractionDisplayFormat, ok := a.tagsCfgMap[tagKey]["fractionDisplayFormat"]
 
 		if ok == true {

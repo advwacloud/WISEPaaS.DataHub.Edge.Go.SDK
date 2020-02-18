@@ -22,13 +22,13 @@ func newTagsCfgHelper() tagsCfgHelper {
 }
 
 func (helper *tagsCfgStruct) addCfgByUploadConfig(a *agent, config *EdgeConfig) bool {
-	scadaID := a.options.ScadaID
+	nodeID := a.options.NodeID
 
 	a.tagsCfgMap = make(map[string]map[string]interface{})
 
-	for _, device := range config.Scada.DeviceList {
+	for _, device := range config.Node.DeviceList {
 		for _, tag := range device.AnalogTagList {
-			tagKey := fmt.Sprintf(tagKeyFormat, scadaID, device.id, tag.name)
+			tagKey := fmt.Sprintf(tagKeyFormat, nodeID, device.id, tag.name)
 
 			cfg, ok := a.tagsCfgMap[tagKey]
 

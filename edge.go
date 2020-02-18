@@ -7,7 +7,7 @@ import (
 // EdgeAgentOptions ...
 type EdgeAgentOptions struct {
 	ReconnectInterval int // second
-	ScadaID           string
+	NodeID            string
 	DeviceID          string
 	Type              byte
 	HeartBeatInterval int
@@ -41,7 +41,7 @@ type DeviceStatus struct {
 
 // EdgeConfig ...
 type EdgeConfig struct {
-	Scada ScadaConfig
+	Node NodeConfig
 }
 
 // EdgeData ...
@@ -63,13 +63,13 @@ type EdgeDeviceStatus struct {
 	Timestamp  time.Time
 }
 
-// ScadaConfig ...
-type ScadaConfig struct {
+// NodeConfig ...
+type NodeConfig struct {
 	primaryIP   interface{}
 	backupIP    interface{}
 	primaryPort interface{}
 	backupPort  interface{}
-	scadaType   interface{}
+	nodeType   interface{}
 	DeviceList  []DeviceConfig
 }
 
@@ -171,7 +171,7 @@ type TimeSyncMessage struct {
 func NewEdgeAgentOptions() *EdgeAgentOptions {
 	options := &EdgeAgentOptions{
 		ReconnectInterval: 1,
-		ScadaID:           "",
+		NodeID:           "",
 		DeviceID:          "",
 		Type:              EdgeType["Gateway"],
 		HeartBeatInterval: HeartBeatInterval,
@@ -193,9 +193,9 @@ func NewEdgeAgentOptions() *EdgeAgentOptions {
 	return options
 }
 
-// NewScadaConfig ...
-func NewScadaConfig() ScadaConfig {
-	return ScadaConfig{}
+// NewNodeConfig ...
+func NewNodeConfig() NodeConfig {
+	return NodeConfig{}
 }
 
 // NewDeviceConfig ...
@@ -266,39 +266,14 @@ func (o *DCCSOptions) isValid() bool {
 	return !(o.URL == "" || o.Key == "")
 }
 
-// SetPrimaryIP ...
-func (config *ScadaConfig) SetPrimaryIP(ip string) {
-	config.primaryIP = ip
-}
-
-// SetBackupIP ...
-func (config *ScadaConfig) SetBackupIP(ip string) {
-	config.backupIP = ip
-}
-
-// SetPrimaryPort ...
-func (config *ScadaConfig) SetPrimaryPort(port int) {
-	config.primaryPort = port
-}
-
-// SetBackupPort ...
-func (config *ScadaConfig) SetBackupPort(port int) {
-	config.backupPort = port
-}
-
 // SetType ...
-func (config *ScadaConfig) SetType(t byte) {
-	config.scadaType = t
+func (config *NodeConfig) SetType(t byte) {
+	config.nodeType = t
 }
 
 // SetName ...
 func (config *DeviceConfig) SetName(name string) {
 	config.name = name
-}
-
-// SetComPortNumber ...
-func (config *DeviceConfig) SetComPortNumber(num int) {
-	config.comPortNumber = num
 }
 
 // SetType ...
@@ -309,16 +284,6 @@ func (config *DeviceConfig) SetType(deviceType string) {
 // SetDescription ...
 func (config *DeviceConfig) SetDescription(desc string) {
 	config.description = desc
-}
-
-// SetIP ...
-func (config *DeviceConfig) SetIP(ip string) {
-	config.ip = ip
-}
-
-// SetPort ...
-func (config *DeviceConfig) SetPort(port int) {
-	config.port = port
 }
 
 // SetRetentionPolicyName ...
