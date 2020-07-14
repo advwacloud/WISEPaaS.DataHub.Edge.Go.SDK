@@ -56,11 +56,13 @@ var mqttQoS = map[string]byte{
 var Protocol = map[string]string{
 	"TCP":       "tcp",
 	"WebSocket": "websockets",
+	"TLS":       "tls",
 }
 
 var protocolScheme = map[string]string{
 	"tcp":        "tcp",
 	"websockets": "ws",
+	"tls":        "tls",
 }
 
 // Status ...

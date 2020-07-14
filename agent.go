@@ -234,6 +234,7 @@ func (a *agent) getCredentailFromDCCS() error {
 		a.options.MQTT.Port = response.Credential.Protocols["mqtt+ssl"].Port
 		a.options.MQTT.UserName = response.Credential.Protocols["mqtt+ssl"].Username
 		a.options.MQTT.Password = response.Credential.Protocols["mqtt+ssl"].Password
+		a.options.MQTT.ProtocalType = Protocol["TLS"]
 	} else {
 		a.options.MQTT.Port = response.Credential.Protocols["mqtt"].Port
 		a.options.MQTT.UserName = response.Credential.Protocols["mqtt"].Username
@@ -247,6 +248,9 @@ func (a *agent) newClientOptions() (*MQTT.ClientOptions, error) {
 	schema := protocolScheme[Protocol["TCP"]]
 	if a.options.MQTT.ProtocalType == Protocol["WebSocket"] {
 		schema = protocolScheme[Protocol["WebSocket"]]
+	}
+	if a.options.MQTT.ProtocalType == Protocol["TLS"] {
+		schema = protocolScheme[Protocol["TLS"]]
 	}
 
 	server := fmt.Sprintf("%s://%s:%d", schema, a.options.MQTT.HostName, a.options.MQTT.Port)
