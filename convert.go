@@ -6,14 +6,14 @@ import (
 	"strconv"
 )
 
-func convertCreateorUpdateConfig(action byte, nodeID string, config EdgeConfig, heartbeat int) (bool, string) {
+func convertCreateorUpdateConfig(action byte, nodeID string, config EdgeConfig, heartbeat int) (bool, configMessage) {
 	message := newConfigData(action)
 	message.D.Scada[nodeID] = make(map[string]interface{})
 	message.D.Scada[nodeID] = convertNodeConfig(config.Node, heartbeat)
-	return true, message.getPayload()
+	return true, message
 }
 
-func convertDeleteConfig(action byte, nodeID string, config EdgeConfig) (bool, string) {
+func convertDeleteConfig(action byte, nodeID string, config EdgeConfig) (bool, configMessage) {
 	message := newConfigData(action)
 	node := config.Node
 	s := make(map[string]interface{})
@@ -26,7 +26,7 @@ func convertDeleteConfig(action byte, nodeID string, config EdgeConfig) (bool, s
 	}
 	message.D.Scada[nodeID] = make(map[string]interface{})
 	message.D.Scada[nodeID] = s
-	return true, message.getPayload()
+	return true, message
 }
 
 func convertNodeConfig(config NodeConfig, heartbeat int) map[string]interface{} {
@@ -216,8 +216,7 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
 
-		tagKey := fmt.Sprintf(tagKeyFormat, a.options.NodeID, tag.DeviceID, tag.TagName)
-		fractionDisplayFormat, ok := a.tagsCfgMap[tagKey]["fractionDisplayFormat"]
+		fractionDisplayFormat, ok := a.cfgCache.D.Scada[a.options.NodeID].(map[string]interface{})["Device"].(map[string]interface{})[tag.DeviceID].(map[string]interface{})["Tag"].(map[string]interface{})[tag.TagName].(map[string]interface{})["FDF"]
 
 		if ok == true {
 			// Round down tag value to the specified digit
