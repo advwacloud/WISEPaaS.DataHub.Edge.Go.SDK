@@ -12,7 +12,7 @@ const (
 	// dataRecoverFilePath ...
 	dataRecoverFilePath string = "recover.sqlite"
 	// tags conifg file path
-	tagsCfgFilePath string = "tagsCfgMap.json"
+	tagsCfgFilePath string = "cfgCache.json"
 	// limit data size
 	dataMaxTagCount int = 100
 )

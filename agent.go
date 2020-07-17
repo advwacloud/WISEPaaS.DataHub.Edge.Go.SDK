@@ -31,7 +31,7 @@ type agent struct {
 	client           MQTT.Client // interface
 	heartbeatTimer   chan bool
 	dataRecoverTimer chan bool
-	tagsCfgMap       map[string]map[string]interface{}
+	cfgCache         configMessage
 	OnConnect        OnConnectHandler
 	OnDisconnect     OnDisconnectHandler
 	OnMessageReceive OnMessageReceiveHandler
@@ -53,7 +53,7 @@ func NewAgent(options *EdgeAgentOptions) Agent {
 		client:           nil,
 		heartbeatTimer:   nil,
 		dataRecoverTimer: nil,
-		tagsCfgMap:       make(map[string]map[string]interface{}),
+		cfgCache:         configMessage{},
 		OnConnect:        func(a Agent) {},
 		OnDisconnect:     func(a Agent) {},
 		OnMessageReceive: func(res MessageReceivedEventArgs) {},
@@ -61,7 +61,7 @@ func NewAgent(options *EdgeAgentOptions) Agent {
 
 	// add cfg to memory from disk
 	helper := newTagsCfgHelper()
-	helper.addCfgFromFile(a, tagsCfgFilePath)
+	helper.getCfgFromFile(a, tagsCfgFilePath)
 
 	return a
 }
@@ -128,17 +128,7 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	}
 	nodeID := a.options.NodeID
 
-	if action != Action["Delete"] {
-		helper := newTagsCfgHelper()
-
-		// add config to memory
-		helper.addCfgByUploadConfig(a, &config)
-
-		// write config to disk
-		helper.writeCfgToFile(a, tagsCfgFilePath)
-	}
-
-	var payload string
+	var payload configMessage
 	var result = false
 	switch action {
 	case Action["Create"]:
@@ -152,9 +142,20 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 	default:
 		result = false
 	}
+
+	if action != Action["Delete"] {
+		helper := newTagsCfgHelper()
+
+		// add config to memory
+		helper.addCfgToMemory(a, payload)
+
+		// write config to disk
+		helper.addCfgToFile(a, tagsCfgFilePath)
+	}
+
 	if result {
 		topic := fmt.Sprintf(mqttTopic["ConfigTopic"], a.options.NodeID)
-		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
+		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload.getPayload()); token.Wait() && token.Error() != nil {
 			fmt.Println(token.Error())
 			result = false
 		}
