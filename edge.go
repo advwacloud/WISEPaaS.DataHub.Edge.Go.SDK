@@ -69,23 +69,23 @@ type NodeConfig struct {
 	backupIP    interface{}
 	primaryPort interface{}
 	backupPort  interface{}
-	nodeType   interface{}
+	nodeType    interface{}
 	DeviceList  []DeviceConfig
 }
 
 // DeviceConfig ...
 type DeviceConfig struct {
-	id              		interface{}
-	name            		interface{}
-	comPortNumber   		interface{}
-	deviceType      		interface{}
-	description     		interface{}
-	ip              		interface{}
-	port            		interface{}
+	id                  interface{}
+	name                interface{}
+	comPortNumber       interface{}
+	deviceType          interface{}
+	description         interface{}
+	ip                  interface{}
+	port                interface{}
 	retentionPolicyName interface{}
-	AnalogTagList   		[]AnalogTagConfig
-	DiscreteTagList 		[]DiscreteTagConfig
-	TextTagList     		[]TextTagConfig
+	AnalogTagList       []AnalogTagConfig
+	DiscreteTagList     []DiscreteTagConfig
+	TextTagList         []TextTagConfig
 }
 
 // AnalogTagConfig ...
@@ -171,7 +171,7 @@ type TimeSyncMessage struct {
 func NewEdgeAgentOptions() *EdgeAgentOptions {
 	options := &EdgeAgentOptions{
 		ReconnectInterval: 1,
-		NodeID:           "",
+		NodeID:            "",
 		DeviceID:          "",
 		Type:              EdgeType["Gateway"],
 		HeartBeatInterval: HeartBeatInterval,
@@ -307,12 +307,12 @@ func (config *AnalogTagConfig) SetArraySize(num uint) {
 }
 
 // SetSpanHigh ...
-func (config *AnalogTagConfig) SetSpanHigh(high float32) {
+func (config *AnalogTagConfig) SetSpanHigh(high float64) {
 	config.spanHigh = high
 }
 
 // SetSpanLow ...
-func (config *AnalogTagConfig) SetSpanLow(low float32) {
+func (config *AnalogTagConfig) SetSpanLow(low float64) {
 	config.spanLow = low
 }
 
