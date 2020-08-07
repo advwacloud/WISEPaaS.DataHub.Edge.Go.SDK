@@ -12,7 +12,7 @@ const (
 	// dataRecoverFilePath ...
 	dataRecoverFilePath string = "recover.sqlite"
 	// tags conifg file path
-	tagsCfgFilePath string = "tagsCfgMap.json"
+	tagsCfgFilePath string = "cfgCache.json"
 	// limit data size
 	dataMaxTagCount int = 100
 )
@@ -56,11 +56,13 @@ var mqttQoS = map[string]byte{
 var Protocol = map[string]string{
 	"TCP":       "tcp",
 	"WebSocket": "websockets",
+	"TLS":       "tls",
 }
 
 var protocolScheme = map[string]string{
 	"tcp":        "tcp",
 	"websockets": "ws",
+	"tls":        "tls",
 }
 
 // Status ...
