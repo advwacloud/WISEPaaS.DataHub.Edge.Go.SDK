@@ -27,14 +27,15 @@ type Agent interface {
 
 // Agent ...
 type agent struct {
-	options          EdgeAgentOptions
-	client           MQTT.Client // interface
-	heartbeatTimer   chan bool
-	dataRecoverTimer chan bool
-	cfgCache         configMessage
-	OnConnect        OnConnectHandler
-	OnDisconnect     OnDisconnectHandler
-	OnMessageReceive OnMessageReceiveHandler
+	options           EdgeAgentOptions
+	client            MQTT.Client // interface
+	heartbeatTimer    chan bool
+	dataRecoverTimer  chan bool
+	dataRecoverHelper DataRecoverHelper
+	cfgCache          configMessage
+	OnConnect         OnConnectHandler
+	OnDisconnect      OnDisconnectHandler
+	OnMessageReceive  OnMessageReceiveHandler
 }
 
 // OnConnectHandler ...
@@ -48,15 +49,20 @@ type OnMessageReceiveHandler func(MessageReceivedEventArgs)
 
 // NewAgent ...
 func NewAgent(options *EdgeAgentOptions) Agent {
+	fmt.Println("test print.")
 	a := &agent{
-		options:          *options,
-		client:           nil,
-		heartbeatTimer:   nil,
-		dataRecoverTimer: nil,
-		cfgCache:         configMessage{},
-		OnConnect:        func(a Agent) {},
-		OnDisconnect:     func(a Agent) {},
-		OnMessageReceive: func(res MessageReceivedEventArgs) {},
+		options:           *options,
+		client:            nil,
+		heartbeatTimer:    nil,
+		dataRecoverTimer:  nil,
+		dataRecoverHelper: nil,
+		cfgCache:          configMessage{},
+		OnConnect:         func(a Agent) {},
+		OnDisconnect:      func(a Agent) {},
+		OnMessageReceive:  func(res MessageReceivedEventArgs) {},
+	}
+	if options.DataRecover {
+		a.dataRecoverHelper = NewDataRecoverHelper(dataRecoverFilePath)
 	}
 
 	// add cfg to memory from disk
@@ -71,7 +77,7 @@ func (a *agent) IsConnected() bool {
 	if a.client == nil {
 		return false
 	}
-	return a.client.IsConnected()
+	return a.client.IsConnectionOpen()
 }
 
 // Connect ...
@@ -104,7 +110,7 @@ func (a *agent) Connect() error {
 
 // Disconnect ...
 func (a *agent) Disconnect() {
-	if !a.IsConnected() {
+	if !a.client.IsConnected() {
 		return
 	}
 
@@ -184,12 +190,22 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 func (a *agent) SendData(data EdgeData) bool {
 	result, payloads := convertTagValue(data, a)
 	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.NodeID)
-	for _, payload := range payloads {
-		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
-			fmt.Println(token.Error())
-			helper := NewDataRecoverHelper(dataRecoverFilePath)
-			helper.Write(payload)
-			result = false
+	if !a.IsConnected() {
+		for _, payload := range payloads {
+			if a.dataRecoverHelper != nil {
+				a.dataRecoverHelper.Write(payload)
+			}
+		}
+		result = false
+	} else {
+		for _, payload := range payloads {
+			if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
+				fmt.Println(token.Error())
+				if a.dataRecoverHelper != nil {
+					a.dataRecoverHelper.Write(payload)
+				}
+				result = false
+			}
 		}
 	}
 	return result
@@ -281,6 +297,7 @@ func (a *agent) newClientOptions() (*MQTT.ClientOptions, error) {
 				fmt.Println(err)
 			}
 		}
+		go a.OnDisconnect(a)
 	})
 	return clientOptions, nil
 }
@@ -336,7 +353,7 @@ func (a *agent) handleOnConnect(c MQTT.Client) {
 }
 
 func (a *agent) handleDisconnect() {
-	for a.client.IsConnected() {
+	for a.client.IsConnectionOpen() {
 	}
 	fmt.Println("Disconnected...")
 	a.client = nil
@@ -425,13 +442,21 @@ func (a *agent) sendRecover() {
 	if !a.IsConnected() {
 		return
 	}
-	helper := NewDataRecoverHelper(dataRecoverFilePath)
+	if a.dataRecoverHelper == nil {
+		return
+	}
+	helper := a.dataRecoverHelper
+
 	if !helper.IsDataExist() {
 		return
 	}
 	messages := helper.Read(defaultReadRecordCount)
 	topic := fmt.Sprintf(mqttTopic["DataTopic"], a.options.NodeID)
 	for _, message := range messages {
+		if !a.IsConnected() {
+			helper.Write(message)
+			continue
+		}
 		if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], false, message); token.Wait() && token.Error() != nil {
 			helper.Write(message)
 		}
