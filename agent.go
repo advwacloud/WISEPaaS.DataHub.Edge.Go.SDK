@@ -49,7 +49,6 @@ type OnMessageReceiveHandler func(MessageReceivedEventArgs)
 
 // NewAgent ...
 func NewAgent(options *EdgeAgentOptions) Agent {
-	fmt.Println("test print.")
 	a := &agent{
 		options:           *options,
 		client:            nil,
