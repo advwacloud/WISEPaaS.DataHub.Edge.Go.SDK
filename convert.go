@@ -204,7 +204,7 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 	count := 0
 	list := data.TagList
 	var messages []string
-	msg := newTagValue()
+	msg := newTagValue(data.Timestamp)
 
 	sort.Slice(list[:], func(i, j int) bool {
 		return list[i].DeviceID < list[j].DeviceID
@@ -229,7 +229,7 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 		count++
 		if count == dataMaxTagCount {
 			messages = append(messages, msg.getPayload())
-			msg = newTagValue()
+			msg = newTagValue(data.Timestamp)
 		}
 	}
 	messages = append(messages, msg.getPayload())

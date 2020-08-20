@@ -115,10 +115,10 @@ func newStatusMessage() statusMessage {
 	}
 }
 
-func newTagValue() tagValue {
+func newTagValue(ts time.Time) tagValue {
 	return tagValue{
 		D:  make(map[string]interface{}),
-		Ts: time.Now().UTC().Format(time.RFC3339),
+		Ts: ts.UTC().Format(time.RFC3339Nano),
 	}
 }
 
