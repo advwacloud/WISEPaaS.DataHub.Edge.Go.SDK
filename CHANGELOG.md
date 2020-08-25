@@ -1,3 +1,7 @@
+## Unreleased
+### Fix
+- Mac與Linux based 系統斷線重新連線後部分封包遺失
+
 ## 1.0.4
 ### Fix
 - MQTT SSL 正確格式
