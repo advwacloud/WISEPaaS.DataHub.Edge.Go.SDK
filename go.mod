@@ -1,4 +1,4 @@
-module SDK
+module github.com/advwacloud/WISEPaaS.DataHub.Edge.Go.SDK
 
 go 1.13
 

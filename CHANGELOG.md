@@ -1,4 +1,4 @@
-## Unrelease
+## 1.0.4
 ### Fix
 - MQTT SSL 正確格式
 - recover.sqlite 無資料
