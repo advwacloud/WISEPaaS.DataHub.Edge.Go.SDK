@@ -119,8 +119,8 @@ func (a *agent) Disconnect() {
 		topic = fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	}
 	payload := newDisconnectMessage().getPayload()
-	if token := a.client.Publish(topic, mqttQoS["AtleaseOnce"], true, payload); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
+	if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], true, payload); token.Wait() && token.Error() != nil {
+		fmt.Println("token error in Disconnect: ", token.Error())
 	}
 
 	go a.handleDisconnect()
@@ -160,8 +160,8 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 
 	if result {
 		topic := fmt.Sprintf(mqttTopic["ConfigTopic"], a.options.NodeID)
-		if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload.getPayload()); token.Wait() && token.Error() != nil {
-			fmt.Println(token.Error())
+		if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], true, payload.getPayload()); token.Wait() && token.Error() != nil {
+			fmt.Println("token error in UploadConfig: ", token.Error())
 			result = false
 		}
 	}
@@ -179,8 +179,8 @@ func (a *agent) SendDeviceStatus(statuses EdgeDeviceStatus) bool {
 	}
 	payload := msg.getPayload()
 	topic := fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
-	if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
+	if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], true, payload); token.Wait() && token.Error() != nil {
+		fmt.Println("token error in SendDviceStatus: ", token.Error())
 		return false
 	}
 	return true
@@ -198,8 +198,8 @@ func (a *agent) SendData(data EdgeData) bool {
 		result = false
 	} else {
 		for _, payload := range payloads {
-			if token := a.client.Publish(topic, mqttQoS["AtLeaseOnce"], true, payload); token.Wait() && token.Error() != nil {
-				fmt.Println(token.Error())
+			if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], true, payload); token.Wait() && token.Error() != nil {
+				fmt.Println("token error in SendData: ", token.Error())
 				if a.dataRecoverHelper != nil {
 					a.dataRecoverHelper.Write(payload)
 				}
@@ -262,6 +262,12 @@ func (a *agent) getCredentailFromDCCS() error {
 func (a *agent) newClientOptions() (*MQTT.ClientOptions, error) {
 	clientOptions := MQTT.NewClientOptions()
 	schema := protocolScheme[Protocol["TCP"]]
+	// Enable Debug
+	// MQTT.DEBUG = log.New(os.Stdout, "[Debug] ", 0)
+	// MQTT.ERROR = log.New(os.Stdout, "[ERROR] ", 0)
+	// MQTT.CRITICAL = log.New(os.Stdout, "[CRIT] ", 0)
+	// MQTT.WARN = log.New(os.Stdout, "[WARN]  ", 0)
+
 	if a.options.MQTT.ProtocalType == Protocol["WebSocket"] {
 		schema = protocolScheme[Protocol["WebSocket"]]
 	}
@@ -276,7 +282,7 @@ func (a *agent) newClientOptions() (*MQTT.ClientOptions, error) {
 	clientOptions.SetAutoReconnect(true)
 	clientOptions.SetConnectRetry(true)
 	clientOptions.SetConnectRetryInterval(time.Duration(a.options.ReconnectInterval) * time.Second)
-	clientOptions.SetCleanSession(true)
+	clientOptions.SetCleanSession(false)
 	clientOptions.SetPassword(a.options.MQTT.Password)
 	clientOptions.SetUsername(a.options.MQTT.UserName)
 	clientOptions.SetMaxReconnectInterval(time.Duration(a.options.ReconnectInterval) * time.Second)
@@ -333,7 +339,7 @@ func (a *agent) handleOnConnect(c MQTT.Client) {
 		topic = fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	}
 	payload := newConnMessage().getPayload()
-	if token := a.client.Publish(topic, mqttQoS["AtleaseOnce"], true, payload); token.Wait() && token.Error() != nil {
+	if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], true, payload); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 	}
 
@@ -432,8 +438,8 @@ func (a *agent) sendHeartBeat() {
 		topic = fmt.Sprintf(mqttTopic["NodeConnTopic"], a.options.NodeID)
 	}
 	payload := newHeartBeatMessage().getPayload()
-	if token := a.client.Publish(topic, mqttQoS["AtleaseOnce"], true, payload); token.Wait() && token.Error() != nil {
-		fmt.Println(token.Error())
+	if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], true, payload); token.Wait() && token.Error() != nil {
+		fmt.Println("token error in sendHeartBeat: ", token.Error())
 	}
 }
 
@@ -457,6 +463,7 @@ func (a *agent) sendRecover() {
 			continue
 		}
 		if token := a.client.Publish(topic, mqttQoS["AtLeastOnce"], false, message); token.Wait() && token.Error() != nil {
+			fmt.Println("token error in sendRecover: ", token.Error())
 			helper.Write(message)
 		}
 	}
