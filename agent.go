@@ -61,7 +61,7 @@ func NewAgent(options *EdgeAgentOptions) Agent {
 		OnMessageReceive:  func(res MessageReceivedEventArgs) {},
 	}
 	if options.DataRecover {
-		a.dataRecoverHelper = NewDataRecoverHelper(dataRecoverFilePath)
+		a.dataRecoverHelper = NewDataRecoverHelper(a.options.NodeID + "-" + dataRecoverFilePath)
 	}
 
 	// add cfg to memory from disk

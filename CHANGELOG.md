@@ -2,6 +2,9 @@
 ### Fix
 - Mac與Linux based 系統斷線重新連線後部分封包遺失
 
+### Change
+- recover.sqlite 更名為 NODE_ID-recover.sqlite
+
 ## 1.0.4
 ### Fix
 - MQTT SSL 正確格式
