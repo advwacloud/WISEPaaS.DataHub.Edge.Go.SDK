@@ -10,9 +10,9 @@ const (
 	// dataRecoverInterval ...
 	dataRecoverInterval int = 3 //second
 	// dataRecoverFilePath ...
-	dataRecoverFilePath string = "recover.sqlite"
+	dataRecoverFilePath string = "_recover.sqlite"
 	// tags conifg file path
-	tagsCfgFilePath string = "cfgCache.json"
+	tagsCfgFilePath string = "_config.json"
 	// limit data size
 	dataMaxTagCount int = 100
 )

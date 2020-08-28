@@ -32,7 +32,7 @@ type agent struct {
 	heartbeatTimer    chan bool
 	dataRecoverTimer  chan bool
 	dataRecoverHelper DataRecoverHelper
-	cfgCache          configMessage
+	cfgCache          configCache
 	OnConnect         OnConnectHandler
 	OnDisconnect      OnDisconnectHandler
 	OnMessageReceive  OnMessageReceiveHandler
@@ -55,7 +55,7 @@ func NewAgent(options *EdgeAgentOptions) Agent {
 		heartbeatTimer:    nil,
 		dataRecoverTimer:  nil,
 		dataRecoverHelper: nil,
-		cfgCache:          configMessage{},
+		cfgCache:          newConfigCache(),
 		OnConnect:         func(a Agent) {},
 		OnDisconnect:      func(a Agent) {},
 		OnMessageReceive:  func(res MessageReceivedEventArgs) {},
@@ -66,7 +66,7 @@ func NewAgent(options *EdgeAgentOptions) Agent {
 
 	// add cfg to memory from disk
 	helper := newTagsCfgHelper()
-	helper.getCfgFromFile(a, tagsCfgFilePath)
+	helper.getCfgFromFile(a, a.options.NodeID+tagsCfgFilePath)
 
 	return a
 }
@@ -132,30 +132,25 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 		return false
 	}
 	nodeID := a.options.NodeID
+	helper := newTagsCfgHelper()
 
 	var payload configMessage
 	var result = false
 	switch action {
 	case Action["Create"]:
 		result, payload = convertCreateorUpdateConfig(action, nodeID, config, a.options.HeartBeatInterval)
+		helper.overwriteCfgCache(a, config)
 	case Action["Update"]:
 		result, payload = convertCreateorUpdateConfig(action, nodeID, config, a.options.HeartBeatInterval)
+		helper.updateCfgCache(a, config)
 	case Action["Delete"]:
 		result, payload = convertDeleteConfig(action, nodeID, config)
+		helper.deleteCfgCache(a, config)
 	case Action["Delsert"]:
 		result, payload = convertCreateorUpdateConfig(action, nodeID, config, a.options.HeartBeatInterval)
+		helper.overwriteCfgCache(a, config)
 	default:
 		result = false
-	}
-
-	if action != Action["Delete"] {
-		helper := newTagsCfgHelper()
-
-		// add config to memory
-		helper.addCfgToMemory(a, payload)
-
-		// write config to disk
-		helper.addCfgToFile(a, tagsCfgFilePath)
 	}
 
 	if result {
@@ -165,6 +160,9 @@ func (a *agent) UploadConfig(action byte, config EdgeConfig) bool {
 			result = false
 		}
 	}
+
+	helper.addCfgToFile(a, a.options.NodeID+tagsCfgFilePath)
+
 	return result
 }
 

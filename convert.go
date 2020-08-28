@@ -204,6 +204,7 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 	count := 0
 	list := data.TagList
 	var messages []string
+
 	msg := newTagValue(data.Timestamp)
 
 	sort.Slice(list[:], func(i, j int) bool {
@@ -211,14 +212,18 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 	})
 
 	for _, tag := range list {
-
+		var fractionDisplayFormat interface{}
 		if msg.D[tag.DeviceID] == nil {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
 
-		fractionDisplayFormat, ok := a.cfgCache.D.Scada[a.options.NodeID].(map[string]interface{})["Device"].(map[string]interface{})[tag.DeviceID].(map[string]interface{})["Tag"].(map[string]interface{})[tag.TagName].(map[string]interface{})["FDF"]
+		if device, ok := a.cfgCache.deviceMap[tag.DeviceID]; ok {
+			if _tag, ok := device[tag.TagName]; ok {
+				fractionDisplayFormat, _ = _tag["FDF"]
+			}
+		}
 
-		if ok == true {
+		if fractionDisplayFormat != nil {
 			// Round down tag value to the specified digit
 			convertVal := roundDownByFDF(tag.Value, fractionDisplayFormat)
 			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = convertVal
