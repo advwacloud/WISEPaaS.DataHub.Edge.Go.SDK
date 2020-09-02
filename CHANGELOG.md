@@ -1,4 +1,8 @@
 ## Unreleased
+
+### Add
+- SendWhenValueChanged 實作
+
 ### Fix
 - Mac與Linux based 系統斷線重新連線後部分封包遺失
 

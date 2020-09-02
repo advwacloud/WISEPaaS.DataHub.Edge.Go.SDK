@@ -99,30 +99,33 @@ type AnalogTagConfig struct {
 	engineerUnit          interface{}
 	integerDisplayFormat  interface{}
 	fractionDisplayFormat interface{}
+	sendWhenValueChanged  interface{}
 }
 
 // DiscreteTagConfig ...
 type DiscreteTagConfig struct {
-	name        interface{}
-	description interface{}
-	readOnly    interface{}
-	arraySize   interface{}
-	state0      interface{}
-	state1      interface{}
-	state2      interface{}
-	state3      interface{}
-	state4      interface{}
-	state5      interface{}
-	state6      interface{}
-	state7      interface{}
+	name                 interface{}
+	description          interface{}
+	readOnly             interface{}
+	arraySize            interface{}
+	state0               interface{}
+	state1               interface{}
+	state2               interface{}
+	state3               interface{}
+	state4               interface{}
+	state5               interface{}
+	state6               interface{}
+	state7               interface{}
+	sendWhenValueChanged interface{}
 }
 
 // TextTagConfig ...
 type TextTagConfig struct {
-	name        interface{}
-	description interface{}
-	readOnly    interface{}
-	arraySize   interface{}
+	name                 interface{}
+	description          interface{}
+	readOnly             interface{}
+	arraySize            interface{}
+	sendWhenValueChanged interface{}
 }
 
 // MessageReceivedEventArgs ...
@@ -208,21 +211,24 @@ func NewDeviceConfig(ID string) DeviceConfig {
 // NewAnaglogTagConfig ...
 func NewAnaglogTagConfig(name string) AnalogTagConfig {
 	return AnalogTagConfig{
-		name: name,
+		name:                 name,
+		sendWhenValueChanged: false,
 	}
 }
 
 // NewDiscreteTagConfig ...
 func NewDiscreteTagConfig(name string) DiscreteTagConfig {
 	return DiscreteTagConfig{
-		name: name,
+		name:                 name,
+		sendWhenValueChanged: false,
 	}
 }
 
 // NewTextTagConfig ...
 func NewTextTagConfig(name string) TextTagConfig {
 	return TextTagConfig{
-		name: name,
+		name:                 name,
+		sendWhenValueChanged: false,
 	}
 }
 
@@ -331,6 +337,11 @@ func (config *AnalogTagConfig) SetFractionDisplayFormat(num uint) {
 	config.fractionDisplayFormat = num
 }
 
+// SetSendWhenValueChanged ...
+func (config *AnalogTagConfig) SetSendWhenValueChanged(flag bool) {
+	config.sendWhenValueChanged = flag
+}
+
 // SetDescription ...
 func (config *DiscreteTagConfig) SetDescription(desc string) {
 	config.description = desc
@@ -386,6 +397,11 @@ func (config *DiscreteTagConfig) SetState7(state string) {
 	config.state7 = state
 }
 
+// SetSendWhenValueChanged ...
+func (config *DiscreteTagConfig) SetSendWhenValueChanged(flag bool) {
+	config.sendWhenValueChanged = flag
+}
+
 // SetDescription ...
 func (config *TextTagConfig) SetDescription(desc string) {
 	config.description = desc
@@ -399,4 +415,9 @@ func (config *TextTagConfig) SetReadOnly(readOnly bool) {
 // SetArraySize ...
 func (config *TextTagConfig) SetArraySize(num uint) {
 	config.arraySize = num
+}
+
+// SetSendWhenValueChanged ...
+func (config *TextTagConfig) SetSendWhenValueChanged(flag bool) {
+	config.sendWhenValueChanged = flag
 }

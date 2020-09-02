@@ -213,12 +213,16 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 
 	for _, tag := range list {
 		var fractionDisplayFormat interface{}
+		var sendWhenValueChanged bool
+		valueMapKey := tag.DeviceID + "_" + tag.TagName
+
 		if msg.D[tag.DeviceID] == nil {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
 
 		if device, ok := a.cfgCache.deviceMap[tag.DeviceID]; ok {
 			if _tag, ok := device[tag.TagName]; ok {
+				sendWhenValueChanged, _ = _tag["SWVC"].(bool)
 				fractionDisplayFormat, _ = _tag["FDF"]
 			}
 		}
@@ -226,9 +230,31 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 		if fractionDisplayFormat != nil {
 			// Round down tag value to the specified digit
 			convertVal := roundDownByFDF(tag.Value, fractionDisplayFormat)
+
+			if sendWhenValueChanged {
+				if recentVal, exist := a.cfgCache.recentValueMap[valueMapKey]; exist {
+					if recentVal.(float64) == convertVal {
+						continue
+					}
+				}
+				a.cfgCache.recentValueMap[valueMapKey] = convertVal
+			}
+
 			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = convertVal
+
 		} else {
+
+			if sendWhenValueChanged {
+				if recentVal, exist := a.cfgCache.recentValueMap[valueMapKey]; exist {
+					if recentVal == tag.Value {
+						continue
+					}
+				}
+				a.cfgCache.recentValueMap[valueMapKey] = tag.Value
+			}
+
 			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
+
 		}
 
 		count++

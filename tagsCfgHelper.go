@@ -22,12 +22,14 @@ type tagsCfgStruct struct{}
 
 type configCache struct {
 	// TODO: add new entry allowFormat for FDF formating logic
-	deviceMap map[string]map[string]map[string]interface{}
+	deviceMap      map[string]map[string]map[string]interface{}
+	recentValueMap map[string]interface{}
 }
 
 func newConfigCache() configCache {
 	return configCache{
-		deviceMap: make(map[string]map[string]map[string]interface{}),
+		deviceMap:      make(map[string]map[string]map[string]interface{}),
+		recentValueMap: make(map[string]interface{}),
 	}
 }
 
@@ -130,6 +132,7 @@ func convertEdgeConfigToConfigCache(a *agent, config EdgeConfig, isUpdate bool) 
 
 			propertyMap := map[string]interface{}{
 				"Type": 1,
+				"SWVC": analogTag.sendWhenValueChanged,
 			}
 			if analogTag.spanHigh != nil {
 				propertyMap["SH"] = analogTag.spanHigh
@@ -154,6 +157,7 @@ func convertEdgeConfigToConfigCache(a *agent, config EdgeConfig, isUpdate bool) 
 
 			propertyMap := map[string]interface{}{
 				"Type": 2,
+				"SWVC": discreteTag.sendWhenValueChanged,
 			}
 			tagMap[tagName] = propertyMap
 		}
@@ -166,6 +170,7 @@ func convertEdgeConfigToConfigCache(a *agent, config EdgeConfig, isUpdate bool) 
 
 			propertyMap := map[string]interface{}{
 				"Type": 3,
+				"SWVC": textTag.sendWhenValueChanged,
 			}
 			tagMap[tagName] = propertyMap
 		}
