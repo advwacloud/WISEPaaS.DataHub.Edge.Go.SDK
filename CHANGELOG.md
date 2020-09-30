@@ -1,3 +1,11 @@
+## 1.0.5
+### Fix
+- Mac與Linux based 系統斷線重新連線後部分封包遺失
+- SendData ts 從永遠Time.Now() 改為傳入的EdgeData時間
+
+### Change
+- 暫時停用 FDF 轉換功能
+
 ## 1.0.4
 ### Fix
 - MQTT SSL 正確格式

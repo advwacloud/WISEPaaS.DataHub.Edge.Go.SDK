@@ -204,7 +204,7 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 	count := 0
 	list := data.TagList
 	var messages []string
-	msg := newTagValue()
+	msg := newTagValue(data.Timestamp)
 
 	sort.Slice(list[:], func(i, j int) bool {
 		return list[i].DeviceID < list[j].DeviceID
@@ -216,20 +216,23 @@ func convertTagValue(data EdgeData, a *agent) (bool, []string) {
 			msg.D[tag.DeviceID] = make(map[string]interface{})
 		}
 
-		fractionDisplayFormat, ok := a.cfgCache.D.Scada[a.options.NodeID].(map[string]interface{})["Device"].(map[string]interface{})[tag.DeviceID].(map[string]interface{})["Tag"].(map[string]interface{})[tag.TagName].(map[string]interface{})["FDF"]
+		// :: Unsupported FDF convert in v1.0.5
+		// fractionDisplayFormat, ok := a.cfgCache.D.Scada[a.options.NodeID].(map[string]interface{})["Device"].(map[string]interface{})[tag.DeviceID].(map[string]interface{})["Tag"].(map[string]interface{})[tag.TagName].(map[string]interface{})["FDF"]
 
-		if ok == true {
-			// Round down tag value to the specified digit
-			convertVal := roundDownByFDF(tag.Value, fractionDisplayFormat)
-			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = convertVal
-		} else {
-			msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
-		}
+		// if ok == true {
+		// 	// Round down tag value to the specified digit
+		// 	convertVal := roundDownByFDF(tag.Value, fractionDisplayFormat)
+		// 	msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = convertVal
+		// } else {
+		// 	msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
+		// }
+
+		msg.D[tag.DeviceID].(map[string]interface{})[tag.TagName] = tag.Value
 
 		count++
 		if count == dataMaxTagCount {
 			messages = append(messages, msg.getPayload())
-			msg = newTagValue()
+			msg = newTagValue(data.Timestamp)
 		}
 	}
 	messages = append(messages, msg.getPayload())
