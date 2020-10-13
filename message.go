@@ -116,10 +116,13 @@ func newStatusMessage() statusMessage {
 }
 
 func newTagValue(ts time.Time) tagValue {
-	return tagValue{
+	currentTimeData := time.Date(ts.Year(), ts.Month(), ts.Day(), ts.Hour(), ts.Minute(), ts.Second(), ts.Nanosecond(), time.Local)
+
+	t := tagValue{
 		D:  make(map[string]interface{}),
-		Ts: ts.UTC().Format(time.RFC3339Nano),
+		Ts: currentTimeData.UTC().Format(time.RFC3339Nano),
 	}
+	return t
 }
 
 func (m *message) getPayload() string {
