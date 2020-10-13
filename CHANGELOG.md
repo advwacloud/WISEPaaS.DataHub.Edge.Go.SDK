@@ -1,3 +1,7 @@
+## 1.0.6
+### Fix
+- Fix customized timestamp parsing error
+
 ## 1.0.5
 ### Fix
 - Mac與Linux based 系統斷線重新連線後部分封包遺失
