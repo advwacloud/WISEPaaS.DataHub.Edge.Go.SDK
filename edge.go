@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -226,10 +227,20 @@ func NewTextTagConfig(name string) TextTagConfig {
 	}
 }
 
-func getWriteDataMessageFromCmdMessage(data interface{}) WriteDataMessage {
+func getWriteDataMessageFromCmdMessage(data interface{}, ts_string string) WriteDataMessage {
 	m := data.(map[string]interface{})
+
+	layout := "2006-01-02T15:04:05.000Z"
+	ts, err := time.Parse(layout, ts_string)
+
+	if err != nil {
+		ts = time.Now()
+		fmt.Println(err)
+	}
+
 	message := WriteDataMessage{
-		Timestamp: time.Now(),
+		//Timestamp: time.Now(),
+		Timestamp: ts,
 	}
 	for device, value := range m {
 		d := Device{

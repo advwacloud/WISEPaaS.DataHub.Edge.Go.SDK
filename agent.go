@@ -384,7 +384,7 @@ func (a *agent) handleCmdReceive(c MQTT.Client, msg MQTT.Message) {
 	switch data.D.Cmd {
 	case "WV":
 		argType = MessageType["WriteValue"]
-		message = getWriteDataMessageFromCmdMessage(data.D.Val)
+		message = getWriteDataMessageFromCmdMessage(data.D.Val, data.Ts)
 	case "TSyn":
 		argType = MessageType["TimeSync"]
 		message = getTimeSyncMessageFromCmdMessage(data.D.UTC)
